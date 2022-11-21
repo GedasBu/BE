@@ -1,52 +1,82 @@
-exports.checkID = (req, res, next, val) => {
-  console.log("tour id is", val);
-  if (val * 1 > tours.length) {
-    return res.status(404).json({
-      message: "not founddd",
+const Part = require("../models/partModel");
+
+exports.getAllParts = async (req, res) => {
+  const parts = await Part.find();
+  res.status(200).json({
+    status: "success",
+    results: parts.length,
+    data: {
+      parts,
+    },
+  });
+};
+
+exports.createPart = async (req, res) => {
+  try {
+    const newPart = await Part.create(req.body);
+    res.status(201).json({
+      status: "success",
+      data: {
+        part: newPart,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: "failed",
+      message: err,
     });
   }
-  next();
 };
 
-exports.getAllParts = (req, res) => {
-  res.status(200).json({
-    status: "success",
-    results: "data is under construction!",
-    data: {},
-  });
+exports.getPartById = async (req, res) => {
+  try {
+    const part = await Part.findById(req.params.id);
+    res.status(200).json({
+      status: "success",
+      data: {
+        part,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: "failed",
+      message: err,
+    });
+  }
 };
 
-exports.insertNewPart = (req, res) => {
-  res.status(201).json({
-    status: "success",
-    results: "Insert new part is under construction",
-    data: {},
-  });
-  res.send(200);
+exports.updatePart = async (req, res) => {
+  console.log(req.params.id);
+  try {
+    const part = await Part.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    res.status(200).json({
+      status: "success",
+      data: {
+        part,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: "failed",
+      message: err,
+    });
+  }
 };
 
-exports.updatePart = (req, res) => {
-  res.status(200).json({
-    status: "success",
-    data: {
-      tour: "Updated part",
-    },
-  });
-};
-
-exports.deletePart = (req, res) => {
-  res.status(204).json({
-    status: "success",
-  });
-};
-
-exports.getPartById = (req, res) => {
-  const id = req.params.id * 1;
-  const tour = tours.find((el) => el.id === id);
-  res.status(200).json({
-    status: "success",
-    data: {
-      tour,
-    },
-  });
+exports.deletePart = async (req, res) => {
+  try {
+    await Part.findByIdAndDelete(req.params.id);
+    res.status(204).json({
+      status: "success",
+      data: null,
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: "failed",
+      message: err,
+    });
+  }
 };

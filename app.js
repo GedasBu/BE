@@ -7,5 +7,7 @@ const app = express();
 app.use(express.json());
 
 app.use("/api/v1/parts", partRouter);
+// app.use("/api/v1/producers", makerRouter);
+// app.use("/api/v1/suppliers", suplierRouter);
 
 module.exports = app;
