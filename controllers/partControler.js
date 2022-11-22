@@ -1,7 +1,20 @@
 const Part = require("../models/partModel");
 
 exports.getAllParts = async (req, res) => {
-  const parts = await Part.find();
+  //Build query
+  const queryObj = { ...req.query };
+
+  //Filtering les('<') or more ('>')
+
+  let queryStr = JSON.stringify(queryObj);
+  queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+  console.log(JSON.parse(queryStr));
+
+  const query = Part.find(JSON.parse(queryStr));
+
+  //Execute query
+  const parts = await query;
+
   res.status(200).json({
     status: "success",
     results: parts.length,
