@@ -23,6 +23,15 @@ exports.getAllParts = async (req, res) => {
     // query = query.sort('-createdAt');
   }
 
+  // Filtering by fields(Selecting fields)
+
+  if (req.query.fields) {
+    const fields = req.query.fields.split(",").join(" ");
+    query = query.select(fields);
+  } else {
+    query = query.select("-__v");
+  }
+
   //Execute query
   const parts = await query;
 
