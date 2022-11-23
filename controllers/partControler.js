@@ -1,52 +1,15 @@
 const Part = require("../models/partModel");
+const APIFeatures = require("../utils/apiFeatures");
 
 exports.getAllParts = async (req, res) => {
   try {
-    //Build query
-    const queryObj = { ...req.query };
-    const excludedFields = ["page", "sort", "limit", "fields"];
-    excludedFields.forEach((el) => delete queryObj[el]);
-
-    //Filtering les('<') or more ('>')
-
-    let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-
-    let query = Part.find(JSON.parse(queryStr));
-
-    //Sorting
-
-    if (req.query.sort) {
-      const sortBy = req.query.sort.split(",").join(" ");
-      query = query.sort(sortBy);
-    } else {
-      //default sort
-      // query = query.sort('-createdAt');
-    }
-
-    // Filtering by fields(Selecting fields)
-
-    if (req.query.fields) {
-      const fields = req.query.fields.split(",").join(" ");
-      query = query.select(fields);
-    } else {
-      query = query.select("-__v");
-    }
-
-    // Pagination
-    const page = req.query.page * 1 || 1;
-    const limit = req.query.limit * 1 || 20;
-    const skip = (page - 1) * limit;
-
-    query = query.skip(skip).limit(limit);
-
-    if (req.query.page) {
-      const numParts = await Part.countDocuments();
-      if (skip >= numParts) throw new Error("No such page");
-    }
-
     //Execute query
-    const parts = await query;
+    const features = new APIFeatures(Part.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const parts = await features.query;
 
     res.status(200).json({
       status: "success",
