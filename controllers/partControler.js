@@ -3,14 +3,25 @@ const Part = require("../models/partModel");
 exports.getAllParts = async (req, res) => {
   //Build query
   const queryObj = { ...req.query };
+  const excludedFields = ["page", "sort", "limit", "fields"];
+  excludedFields.forEach((el) => delete queryObj[el]);
 
   //Filtering les('<') or more ('>')
 
   let queryStr = JSON.stringify(queryObj);
   queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-  console.log(JSON.parse(queryStr));
 
-  const query = Part.find(JSON.parse(queryStr));
+  let query = Part.find(JSON.parse(queryStr));
+
+  //Sorting
+
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(",").join(" ");
+    query = query.sort(sortBy);
+  } else {
+    //default sort
+    // query = query.sort('-createdAt');
+  }
 
   //Execute query
   const parts = await query;
