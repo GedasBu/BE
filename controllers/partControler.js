@@ -1,97 +1,79 @@
 const Part = require("../models/partModel");
 const APIFeatures = require("../utils/apiFeatures");
+const catchAsync = require("../utils/catchAsync");
+const AppError = require("../utils/appError");
 
-exports.getAllParts = async (req, res) => {
-  try {
-    //Execute query
-    const features = new APIFeatures(Part.find(), req.query)
-      .filter()
-      .sort()
-      .limitFields()
-      .paginate();
-    const parts = await features.query;
+exports.getAllParts = catchAsync(async (req, res, next) => {
+  const features = new APIFeatures(Part.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+  const parts = await features.query;
 
-    res.status(200).json({
-      status: "success",
-      results: parts.length,
-      data: {
-        parts,
-      },
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: "failed",
-      message: err,
-    });
+  res.status(200).json({
+    status: "success",
+    results: parts.length,
+    data: {
+      parts,
+    },
+  });
+});
+
+exports.createPart = catchAsync(async (req, res, next) => {
+  const newPart = await Part.create(req.body);
+  res.status(201).json({
+    status: "success",
+    data: {
+      part: newPart,
+    },
+  });
+});
+
+exports.getPartById = catchAsync(async (req, res, next) => {
+  const part = await Part.findById(req.params.id);
+  if (!part) {
+    return next(
+      new AppError(`No part found with that Id: ${req.params.id}`, 404)
+    );
   }
-};
+  res.status(200).json({
+    status: "success",
+    data: {
+      part,
+    },
+  });
+});
 
-exports.createPart = async (req, res) => {
-  try {
-    const newPart = await Part.create(req.body);
-    res.status(201).json({
-      status: "success",
-      data: {
-        part: newPart,
-      },
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: "failed",
-      message: err,
-    });
-  }
-};
+exports.updatePart = catchAsync(async (req, res, next) => {
+  const part = await Part.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
 
-exports.getPartById = async (req, res) => {
-  try {
-    const part = await Part.findById(req.params.id);
-    res.status(200).json({
-      status: "success",
-      data: {
-        part,
-      },
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: "failed",
-      message: err,
-    });
+  if (!part) {
+    return next(
+      new AppError(`No part found with that Id: ${req.params.id}`, 404)
+    );
   }
-};
 
-exports.updatePart = async (req, res) => {
-  console.log(req.params.id);
-  try {
-    const part = await Part.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    res.status(200).json({
-      status: "success",
-      data: {
-        part,
-      },
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: "failed",
-      message: err,
-    });
-  }
-};
+  res.status(200).json({
+    status: "success",
+    data: {
+      part,
+    },
+  });
+});
 
-exports.deletePart = async (req, res) => {
-  try {
-    await Part.findByIdAndDelete(req.params.id);
-    res.status(204).json({
-      status: "success",
-      data: null,
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: "failed",
-      message: err,
-    });
+exports.deletePart = catchAsync(async (req, res, next) => {
+  const part = await Part.findByIdAndDelete(req.params.id);
+  if (!part) {
+    return next(
+      new AppError(`No part found with that Id: ${req.params.id}`, 404)
+    );
   }
-};
+  res.status(204).json({
+    status: "success",
+    data: null,
+  });
+});
