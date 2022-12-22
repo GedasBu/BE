@@ -14,7 +14,7 @@ router
   .patch(partController.updatePart)
   .delete(
     authController.protect,
-    authController.restrict("admin"),
+    authController.restrictTo("admin"),
     partController.deletePart
   );
 
